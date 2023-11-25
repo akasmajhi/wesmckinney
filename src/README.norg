@@ -1,0 +1,12 @@
+* IMPORTANT NOTE
+  - Ensure that you are running the code from within the src directory.
+  @code bash
+  python common/test_helper.py
+  python analytics/test_daily.py
+  @end
+
+  - Make sure that your PYTHONPATH contains .
+  @code bash
+  export PYTHONPATH=.:$PYTHONPATH
+  @end
+

@@ -1,0 +1,170 @@
+* Introduction
+  - While pandas adopts many coding idioms from NumPy, the biggest difference is
+    that pandas is designed for working with tabular or heterogeneous data.
+    NumPy, by contrast, is best suited for working with homogeneously typed
+    numerical array data.
+
+* Pandas Data Structure
+** Series
+   - It is a 1-D array like object containing sequence of values of the same
+     type and an associated array of data labels., called it's `index`.
+   @code python
+   obj = pd.Series([10, 20, 30, 40])
+   @end
+   - The string representation of a Series displayed interactively shows the
+     index on the left and the values on the right. Since we did not specify an
+     index for the data, a default one consisting of the integers 0 through N -
+     1 (where N is the length of the data) is created. You can get the array
+     representation and index object of the Series via its _array and index_
+     attributes, respectively:
+   @code python
+   ob.array
+   obj.index
+   @end
+
+   - you'll want to create a Series with an index identifying each data point with a label:
+   @code python
+   obj2 = pd.Series(data=[1973, 1978, 2003], index=["Akas", "Rosy", "Avisi"])
+   @end
+
+   @end
+   - Using NumPy functions or NumPy-like operations, such as filtering with a
+     Boolean array, scalar multiplication, or applying math functions, will
+     preserve the index-value link:
+   @code python
+   obj2[obj2 < 2000] # The values under 2000
+   @end
+
+   - Another way to think about a Series is as a fixed-length, ordered
+     dictionary, as it is a mapping of index values to data values. It can be
+     used in many contexts where you might use a dictionary:
+   - Should you have data contained in a Python dictionary, you can create a
+     Series from it by passing the dictionary:
+   @code python
+   sdata = {"Ohio": 35000, "Texas": 71000, "Oregon": 16000, "Utah": 5000}
+   # Python dictionary to pandas series
+   # keys become the index
+
+   obj3 = pd.Series(sdata)
+   # making a python dictionary out of a pandas series
+   obj3.to_dict()
+   @end
+
+   - The isna and notna functions in pandas should be used to detect missing
+     data
+   @code python
+   regional_food = {"sambalpur": "sarsatia", "cuttack": "aloo dum", "dhenkanal":
+                    "bara", "balasore": "moori"}
+   # create a series from regional_food
+   regional_food_series = pd.Series(regional_food)
+   # define the index as a list
+   regional_food_series_index = ["cuttack", "dhenkanal", "sambalpur", "bargarh"]
+   # re-create the series with new index
+   obj_food = pd.Series(data=regional_food, index=regional_food_series_index)
+   # After the above command, (1) value for bargarh will be NaN since it is not
+   # present in the original series and (2) balasore will be missing since the
+   # new index does not contain balasore
+
+   # check data using pd.isna and pd.notna
+   obj_food[pd.isna(obj_food)]
+   # will print bargarh with NaN
+   obj_food[pd.notna(obj_food)]
+   # will print rest of non-NaN values
+   @end
+
+   - Both the Series object itself and its index have a name attribute, which
+     integrates with other areas of pandas functionality:
+   @code python
+   regional_food_dict = {"sambalpur": "sarsatia", "cuttack": "aloo dum",
+                         "dhenkanal": "bara", "balasore": "moori"}
+   regional_food_series = pd.Series(regional_food_dict)
+   regional_food_series.name = 'Fav. Food' 
+   regional_food_series.index.name = 'District'
+   @end
+
+** DataFrame
+
+   - A DataFrame represents a rectangular table of data and contains an ordered,
+     named collection of columns, each of which can be a different value type
+     (numeric, string, Boolean, etc.). The DataFrame has both a row and column
+     index; it can be thought of as a dictionary of Series all sharing the same
+     index.
+   @code python
+   food = {"district": ["sambalpur", "cuttack", "dhenkanal", "balasore", "bargarh"], 
+           "famous_food": ["sarsatia", "aloo dum", "bara", "moori", "gulgula"],
+           "population": [253_000, 776_000, 91_000, 161_000, 104_000]}
+   food_frame = pd.DataFrame(food)
+   food_frame
+   @end
+*** access columns in DF
+    - A column in a DataFrame can be retrieved as a Series either by
+      dictionary-like notation or by using the dot attribute notation:
+    @code python
+    food_frame.district
+    food_frame["district"] # both are valid syntaxes
+    @end
+    > Note
+    - `frame2[column]` works for any column name, but frame2.column works only
+      when the column name is a valid Python variable name and does not conflict
+      with any of the method names in DataFrame. For example, if a column's name
+      contains whitespace or symbols other than underscores, it cannot be
+      accessed with the dot attribute method. 
+*** access rows in DF
+    - Rows can also be retrieved by position or name with the special iloc and
+      loc attributes
+    @code python
+    food_frame.loc[1]
+    food_frame.iloc[2]
+    @end
+
+*** modify column
+    - Columns can be modified by assignment.
+    @code python
+    food_frame["debt"] = 100_000 # Assign a constant value to all rows
+    food_frame["debt"] = np.arange(len(food_frame)) # assign a range of values
+    @end
+    - When you are assigning lists or arrays to a column, the value’s length
+      must match the length of the DataFrame. If you assign a Series, its labels
+      will be realigned exactly to the DataFrame’s index, inserting missing
+      values in any index values not present:
+    - Assigning a column that doesn’t exist will create a new column.
+
+*** Delete a column
+    - The del keyword will delete columns like with a dictionary.
+    @code python
+    del food_frame['western'] # provide the column name
+    @end
+
+*** creata a DataFrame from nested dictionary
+    - If the nested dictionary is passed to the DataFrame, pandas will interpret
+      the outer dictionary keys as the columns, and the inner keys as the row
+      indices:
+    @code python
+    od_details = {"food": {"sambalpur": "sarsatia", "bargarh": "gul gula", "cuttack": "aaloo dum"}, 
+                  "population": {"sambalpur": 253_000, "bargarh": 104_000, "cuttack": 776000},
+                  "region": {"sambalpur": "West", "bargarh": "West", "cuttack": "East"}}
+    od_details_df = pd.DataFrame(od_details)
+    od_details_df
+    @end
+
+*** Transpose a DataFrame
+    swapping rows with columns
+    @code python
+    od_details_df.T
+    @end
+
+*** TODO Details about DataFrames index and name attributeset
+    - 
+
+* Essential Functionality
+  Day-to-day features that are commonly and largely used.
+** Reindexing
+   - to create a new object with the values rearranged to align with the new
+     index
+
+
+
+
+
+
+
