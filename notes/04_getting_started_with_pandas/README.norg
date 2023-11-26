@@ -161,8 +161,323 @@
 ** Reindexing
    - to create a new object with the values rearranged to align with the new
      index
+   - > `Is this section really required?`
 
+** Dropping Entries from an Axis
+**** Series
+     - the `drop` method will return a new object with the indicated value or values
+       deleted from an axis.
+     @code python
+     district_food = pd.Series(data=["Sarsatia", "Gul Gula", "Saakra"],
+                               index=["Sambalpur", "Bolangir", "Kalahandi"])
+     In [13]: district_food
+     Out[13]:
+     Sambalpur    Sarsatia
+     Bolangir     Gul Gula
+     Kalahandi      Saakra
+     dtype: object
 
+     # Drop one entry using the drop method
+     In [14]: new_district_food = district_food.drop("Bolangir")
+     # The original series does not change
+     In [15]: district_food
+     Out[15]:
+     Sambalpur    Sarsatia
+     Bolangir     Gul Gula
+     Kalahandi      Saakra
+     dtype: object
+     # The series returned after the drop contains the change
+     In [16]: new_district_food
+     Out[16]:
+     Sambalpur    Sarsatia
+     Kalahandi      Saakra
+     dtype: object
+     In [17]:
+     @end
+
+**** DataFrame 
+
+     @code python
+     data = pd.DataFrame(np.arange(16).reshape((4, 4)), 
+                         index=['Ohio', 'Colordo', 'Utah', 'New Your'],
+                         columns=['one', 'two', 'three', 'four'])
+     data.drop(index=['Ohio', 'Colorado'])
+     data.drop(columns=['one', 'three'])
+     # Data can also be dropped using axis value
+     # axis = 1 means column
+     data.drop('two', axis=1)
+     data.drop(['two', 'one'], axis=1)
+     # If you give an non-existing axis, you will get an error
+     data.drop(['two', 'one', 'x'], axis=1)
+     @end
+
+** Indexing, Selection, and Filtering 
+*** Indexing
+**** Series Indexing
+     - Series indexing (obj[...]) works analogously to NumPy array indexing,
+       except you can use the Series’s index values instead of only integers.
+     @code python
+     obj = pd.Series(np.arange(4.), index=['a', 'b', 'c', 'd'])
+     In [36]: obj
+     Out[36]:
+     a    0.0
+     b    1.0
+     b    2.0
+     d    3.0
+     dtype: float64 
+     obj['b']
+     In [39]: obj['b']
+     Out[39]: 1.0
+     @end
+
+     - the preferred way to select index values is with the special loc
+       operator:
+     @code python
+     obj.loc["a"] # For selecting a single item from the series
+     obj.loc[["a", "c"]] # for selecting multiple entries of the series
+     # Even the numeric index also works; but this appraoch is best avoided
+     obj.loc[1] # Does not work in latest pandas library
+     obj.iloc[1] # iloc works well though! And rightly so.
+
+     @end
+
+     > Since loc operator indexes exclusively with labels, there is also an iloc
+       operator that indexes exclusively with integers to work consistently
+       whether or not the index contains integers:
+
+**** DataFrame Indexing
+     - Indexing into a DataFrame retrieves one or more columns either with a
+       single value or sequence:
+     @code python
+     data = pd.DataFrame(np.arange(16).reshape((4, 4)), 
+                         index=["Ohio", "Colorado", "Utah", "New York"],
+                         columns=["one", "two", "three", "four"])
+     data
+     Out[109]:
+               one  two  three  four
+     Ohio        0    1      2     3
+     Colorado    4    5      6     7
+     Utah        8    9     10    11
+     New York   12   13     14    15
+     @end
+
+     - Select columns using the column name
+     @code python
+     data["two"]
+     Out[113]:
+     Ohio         1
+     Colorado     5
+     Utah         9
+     New York    13
+     # select multiple columns by passing array of column names
+     data[['two', 'four']]
+     @end
+     - Slicing DataFrame - slicing or selecting data with a Boolean array
+     @code python
+     data[:2]
+     data[1:4]
+     data[data.three > 5]
+     @end
+     - The row selection syntax data[:2] is provided as a convenience. Passing a
+       single element or a list to the `[]` operator selects columns.
+
+     - Another use case is indexing with a Boolean DataFrame, such as one
+       produced by a scalar comparison. Consider a DataFrame with all Boolean
+       values produced by comparing with a scalar value:
+     @code python
+     data < 5
+     Out[117]:
+                 one    two  three   four
+     Ohio       True   True   True   True
+     Colorado   True  False  False  False
+     Utah      False  False  False  False
+     New York  False  False  False  False
+     @end
+
+     - We can use this DataFrame to assign the value 0 to each location with the
+       value True, like so: 
+     @code python
+     data[data < 5] = 0
+     In [119]: data
+     Out[119]:
+               one  two  three  four
+     Ohio        0    0      0     0
+     Colorado    0    5      6     7
+     Utah        8    9     10    11
+     New York   12   13     14    15     
+     @end
+
+*** Selection on DataFrame with loc and iloc 
+    - Like Series, DataFrame has special attributes loc and iloc for label-based
+      and integer-based indexing, respectively. Since DataFrame is
+      two-dimensional, you can select a subset of the rows and columns with
+      NumPy-like notation using either axis labels (loc) or integers (iloc). 
+    @code python
+    data 
+    Out[188]:
+          one  two  three  four
+    Ohio        0    0      0     0
+    Colorado    0    5      6     7
+    Utah        8    9     10    11
+    New York   12   13     14    15
+    # Single row selection by passing index
+    data.loc["Colorado"]
+    Out[189]:
+    one      0
+    two      5
+    three    6
+    four     7
+    @end
+
+    - The result of selecting a single row is a Series with an index that
+      contains the DataFrame's column labels. To select multiple roles, creating
+      a new DataFrame, pass a sequence of labels:
+    @code python
+    # Cell selection using loc with index and column name
+    data.loc["Colorado", "four"]
+    Out[190]: 7
+    @end
+    - `iloc`
+    -- Pass row and column index when using iloc
+    @code python
+    data 
+    Out[237]:
+              one  two  three  four
+    Ohio        0    0      0     0
+    Colorado    0    5      6     7
+    Utah        8    9     10    11
+    New York   12   13     14    15
+    data.iloc[2, 3] # Cell for ['Utah', 'four'] which is 11
+    @end
+    - You can get multiple values/cells as a series using a list of list as
+      parameter to iloc.
+    @code python
+    data.iloc[[1], [2, 3]] # colorado 'three', 'four' values
+    Out[240]:
+              three  four
+    Colorado      6     7
+    @end
+
+    - Both indexing functions work with slices in addition to single labels or
+      lists of labels:
+
+    - Boolean arrays can be used with loc but not iloc:
+
+**** Integer indexing pitfalls
+     -> TODO: Read this again
+**** Pitfalls with chained indexing
+     -> TODO: Read this again
+** Arithmetic & Data Alignment
+*** Series 
+    When 2 series are added, the union results in the union of common indexes
+    and the missing indexes are populated with NaN
+    @code python
+    s1 = pd.Series(data=[7.3, -2.5, 3.4, 1.5], index=['a', 'c', 'd', 'e'])
+    s2 = pd.Series(data=[-2.1, 3.6, -1.5, 4, 3.1], index=['a', 'c', 'e', 'f', 'g'])
+    In [276]: s1 + s2 # Missing indexes are NaN populated.
+    Out[276]:
+    a    5.2
+    c    1.1
+    d    NaN
+    e    0.0
+    f    NaN
+    g    NaN
+    @end
+    - `Note`: The internal data alignment introduces missing values in the label
+      locations that don’t overlap. Missing values will then propagate in
+      further arithmetic computations.
+
+*** DataFrame
+    - In the case of DataFrame, alignment is performed on both rows and columns:
+    @code python
+    df1 = pd.DataFrame(np.arange(9.).reshape((3, 3)), columns=list("bcd"),
+                       index=["Ohio", "Texas", "Colorado"]) 
+    f2 = pd.DataFrame(np.arange(12.).reshape((4, 3)), columns=list("bde"),
+                      index=["Utah", "Ohio", "Texas", "Oregon"])
+    In [286]: df1 + df2
+    Out[286]:
+                b   c     d   e
+    Colorado  NaN NaN   NaN NaN
+    Ohio      3.0 NaN   6.0 NaN
+    Oregon    NaN NaN   NaN NaN
+    Texas     9.0 NaN  12.0 NaN
+    Utah      NaN NaN   NaN NaN
+    # Since the "c" and "e" columns are not found in both DataFrame objects,
+    # they appear as missing in the result. The same holds for the rows with
+    # labels that are not common to both objects.
+    @end
+
+    - `Note:` If you add DataFrame objects with no column or row labels in
+      common, the result will contain all nulls:
+
+** Arithmetic methods with fill values
+   - In arithmetic operations between differently indexed objects, you might
+     want to fill with a special value, like 0, when an axis label is found in
+     one object but not the other. Here is an example where we set a particular
+     value to NA (null) by assigning np.nan to it:
+   @code python
+   df1 = pd.DataFrame(np.arange(12.).reshape((3, 4)), columns=list("abcd"))
+   df2 = pd.DataFrame(np.arange(20.).reshape((4, 5)), columns=list("abcde"))
+   In [294]: df1+df2
+   Out[294]:
+         a     b     c     d   e
+   0   0.0   2.0   4.0   6.0 NaN
+   1   9.0   NaN  13.0  15.0 NaN
+   2  18.0  20.0  22.0  24.0 NaN
+   3   NaN   NaN   NaN   NaN NaN
+   @end
+   - Using the add method on df1, I pass df2 and an argument to fill_value, which substitutes the passed value for any missing values in the operation:
+   @code python
+   df1.add(df2, fill_value=0)  
+   Out[295]:
+          a     b     c     d     e
+   0   0.0   2.0   4.0   6.0   4.0
+   1   9.0   5.0  13.0  15.0   9.0
+   2  18.0  20.0  22.0  24.0  14.0
+   3  15.0  16.0  17.0  18.0  19.0
+   @end
+
+** Operations between DataFrame and Series
+
+*** Broadcasting
+    - One row value is operated on each row of the x-dimensional array.
+**** Series Broadcasting
+     @code python
+     arr = np.arange(12.).reshape((3, 4))  
+     arr
+     Out[300]:
+     array([[ 0.,  1.,  2.,  3.],
+            [ 4.,  5.,  6.,  7.],
+            [ 8.,  9., 10., 11.]])
+     arr[0]
+     Out[301]: array([0., 1., 2., 3.])
+     arr - arr[0]
+     Out[302]:
+     array([[0., 0., 0., 0.],
+            [4., 4., 4., 4.],
+            [8., 8., 8., 8.]])
+     @end
+
+**** DataFrame Broadcasting
+     - DF broadcasting follows a similar patter
+     @code python
+     frame = pd.DataFrame(np.arange(12.).reshape((4, 3)), columns=list("bde"),
+                          index=["Utah", "Ohio", "Texas", "Oregon"])
+     series = frame.iloc[0]
+     In [306]: frame - series
+     Out[306]:
+               b    d    e
+     Utah    0.0  0.0  0.0
+     Ohio    3.0  3.0  3.0
+     Texas   6.0  6.0  6.0
+     Oregon  9.0  9.0  9.0
+     @end
+
+     - If an index value is not found in either the DataFrame’s columns or the
+       Series’s index, the objects will be reindexed to form the union:
+     @code python
+     series2 = pd.Series()
+     @end
 
 
 
