@@ -1,13 +1,17 @@
 print(f"NAME: In Helper: {__name__}")
 if __name__ == "helper" or "__main__":
-    from common.constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS, BHAV_DIR
+    from common.constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS,\
+    BHAV_DIR, YEARLY_FETCH_URL
 else:
-    from .constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS, BHAV_DIR
+    from .constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS, BHAV_DIR,\
+    YEARLY_FETCH_URL
 
 from datetime import date, datetime
 import os
+import requests
 
-import pandas as pd 
+import pandas as pd
+from requests.exceptions import HTTPError 
 
 f_name = __file__.split('/')[-1]
 
@@ -144,6 +148,28 @@ def get_bhav_copy(t_date: date):
     # If CSV exists locally then return it
     # If the CSV does not exist then fetch the bhav copy and store it and return
     # it.
+    return None
+
+def fetch_yearly_data(symbol: str):
+    # https://www.nseindia.com/api/historical/cm/equity?symbol=EASEMYTRIP&series=[%22BE%22]&from=01-04-2021&to=31-03-2022
+    m_name = "fetch_yearly_data"
+    log_append = f"File: {f_name} Module: {m_name}" 
+    if LOGGER:
+        print(f"{log_append} Symbol Date: [{symbol}]")
+    response = None
+    try:
+        symbol_yearly_url = YEARLY_FETCH_URL + symbol
+        print(f"{log_append} symbol_yearly_url: [{symbol_yearly_url}]")
+        response = requests.get(symbol_yearly_url)
+        response.raise_for_status()
+    except HTTPError as http_error:
+        print(f"{log_append} HTTP Error Occured: [{http_error}]")
+    except Exception as err:
+        print(f"{log_append} Error Occured: [{err}]")
+    else:
+        print(f"{log_append} HTTP Request was successful")
+    if response and response.content:
+        return response.content
     return None
 
 if __name__ == "__main__":

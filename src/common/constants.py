@@ -6,6 +6,9 @@ NSE_HOLIDAYS = [date(2022,8,9),date(2023,1,26),date(2023,3,7),date(2023,3,30),da
 BASE_DIR = "/home/akasmajhi/data/NSE"
 BHAV_DIR = "/home/akasmajhi/data/NSE/bhavcopy"
 BASE_URL = "https://archives.nseindia.com/content/historical/EQUITIES/"
+YEARLY_DATA_DIR="/home/akasmajhi/data/NSE/yearly_data/"
+# The following URL is appeneded with scrip name to get yearly data
+YEARLY_FETCH_URL="https://www.nseindia.com/api/historical/cm/equity?symbol="
 LOGGER = True
 D_LOGGER = True
 valid_periods = ["month", "mon", "week", "year", "Q1", "Q2", "Q3", "Q4","H1","H2"]

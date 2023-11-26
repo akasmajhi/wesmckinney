@@ -58,5 +58,9 @@ class test_helper(unittest.TestCase):
         csv_file_invalid = "cm19NOV2023bhav.csv"
         self.assertFalse(helper.is_csv_existing(csv_file_invalid))
 
+    def test_fetch_yearly_data(self):
+        symbol = 'AXISBANK'
+        self.assertIsNotNone(helper.fetch_yearly_data(symbol))
+        pass
 if __name__ == "__main__":
     unittest.main()
