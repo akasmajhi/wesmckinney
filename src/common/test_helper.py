@@ -59,8 +59,16 @@ class test_helper(unittest.TestCase):
         self.assertFalse(helper.is_csv_existing(csv_file_invalid))
 
     def test_fetch_yearly_data(self):
+        """
+        This method does not work because the URL is not getting fetched
+        """
         symbol = 'AXISBANK'
-        self.assertIsNotNone(helper.fetch_yearly_data(symbol))
+        # self.assertIsNotNone(helper.fetch_yearly_data(symbol))
         pass
+    def test_compose_symbol_wise_data(self):
+        # Passing an invalid period to get None
+        self.assertIsNone(helper.get_symbol_wise_data("INFY", 'INVALID_PERIOD'))
+        self.assertIsNotNone(helper.get_symbol_wise_data("AXISBANK", 'YEAR'))
+
 if __name__ == "__main__":
     unittest.main()

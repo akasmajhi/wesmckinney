@@ -50,7 +50,7 @@ def daily_price_gainers(trading_date: date):
     print(f"{log_append} date: [{trading_date}]")
     df:pd.DataFrame = pd.DataFrame(helper.get_bhav_copy(trading_date))
     df_eq: pd.DataFrame = pd.DataFrame(df[df.SERIES == 'EQ'])
-    print(f"{log_append}: Equities: {df_eq.SERIES}")
+    print(f"{log_append}: Length of Equities DF: {len(df_eq.SERIES)}")
     # print(df_eq["SERIES"])
     
     return df_eq

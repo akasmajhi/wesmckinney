@@ -18,7 +18,8 @@ class test_daily(unittest.TestCase):
         # TODO For today's bhav, you need to check cutoff time
         # self.assertIsNone(daily.daily_price_gainers(date.today()))
         # For a valid trading date
-        self.assertIsNone(daily.daily_price_gainers(date(2023, 11, 22)))
+        self.assertIsNotNone(daily.daily_price_gainers(date(2023, 11, 22)))
+        self.assertGreater(len(daily.daily_price_gainers(date(2023, 11, 22))), 1)
         # For a weekend you should get None
         # self.assertIsNone(daily.daily_price_gainers(date(2023, 11, 19)))
         # For a market close day, you should get None

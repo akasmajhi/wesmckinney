@@ -7,11 +7,14 @@ BASE_DIR = "/home/akasmajhi/data/NSE"
 BHAV_DIR = "/home/akasmajhi/data/NSE/bhavcopy"
 BASE_URL = "https://archives.nseindia.com/content/historical/EQUITIES/"
 YEARLY_DATA_DIR="/home/akasmajhi/data/NSE/yearly_data/"
+SYMBOLS_DATA_DIR="/home/akasmajhi/data/NSE/symbols_data/"
 # The following URL is appeneded with scrip name to get yearly data
 YEARLY_FETCH_URL="https://www.nseindia.com/api/historical/cm/equity?symbol="
 LOGGER = True
 D_LOGGER = True
-valid_periods = ["month", "mon", "week", "year", "Q1", "Q2", "Q3", "Q4","H1","H2"]
+valid_periods = ["MONTH", "MON", "WEEK", "YEAR", "QTD", "MTD"]
 
+BHAV_HEADER = ["SYMBOL","SERIES","OPEN","HIGH","LOW","CLOSE","LAST","PREVCLOSE","TOTTRDQTY",
+                "TOTTRDVAL","TIMESTAMP","TOTALTRADES","ISIN"]
 if __name__ == "__main__":
     pass
