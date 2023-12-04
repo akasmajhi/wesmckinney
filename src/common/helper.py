@@ -2,22 +2,141 @@ print(f"NAME: In Helper: {__name__}")
 if __name__ == "helper" or "__main__":
     from common.constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS,\
     BHAV_DIR, YEARLY_FETCH_URL, valid_periods, SYMBOLS_DATA_DIR,\
-    BHAV_HEADER
+    BHAV_HEADER, BASE_URL
 else:
     from .constants import BASE_DIR, D_LOGGER, LOGGER, NSE_HOLIDAYS, BHAV_DIR,\
-    YEARLY_FETCH_URL, valid_periods, SYMBOLS_DATA_DIR, BHAV_HEADER
+    YEARLY_FETCH_URL, valid_periods, SYMBOLS_DATA_DIR, BHAV_HEADER, BASE_URL
 
 from datetime import date, datetime, timedelta
 import os
 import requests
 
 import pandas as pd
+import zipfile
 from requests.exceptions import HTTPError
-
 
 f_name = __file__.split('/')[-1]
 
+def is_csv_file_name_valid(csv_name: str):
+    """Performs validation on bhav csv file name.
+    Parameter
+    ---------
+    csv_name: str
+        Name of the CSV file. (cm10NOV2023bhav.csv)
+    Return
+        True if CSV file name is valid; False otherwise.
+    """
+    m_name = "is_csv_file_name_valid"
+    log_append = f"File: {f_name} Module: {m_name}" 
+    print(f"{log_append}: input csv_name: [{csv_name}]")
+    # Is the file name valid (length is exactly 19)
+    if (csv_name is not None and len(csv_name) != 19):
+        if D_LOGGER:
+            print(f"{log_append}: Invalid csv_name: [{csv_name}]")
+        return False
+    if D_LOGGER:
+        print(f"{log_append}: Valid csv_name: [{csv_name}]")
+    return True
+
+def de_structure_bhav_name(csv_name: str):
+    """Destructures the parts from a bhav CSV file name
+        For a given bhav csv file name, extract it's parts.
+    Parameter
+    ---------
+    bhav_csv_name: str
+        String representation of the bhav csv name; for example, cm01DEC2022bhav.csv
+
+    Return
+    bahv_parts: tuple
+        A tuple representing (DD, MM, YYYY) parts
+    None: If the file name is invalid
+    """
+    m_name = "de_structure_bhav_name"
+    log_append = f"File: {f_name} Module: {m_name}" 
+    print(f"{log_append}: input csv_name: [{csv_name}]")
+    if (not is_csv_file_name_valid(csv_name)):
+        if D_LOGGER:
+            print(f"{log_append}: Invalid CSV name passed: [{csv_name}]")
+        return (None, None, None)
+    if D_LOGGER:
+        print(f"{log_append}: (dd, mmm, yyyy): [{(csv_name[2:4], csv_name[4:7],\
+            csv_name[7:11]) }]")
+    return (csv_name[2:4], csv_name[4:7], csv_name[7:11])
+
+def fetch_bhav_copy(csv_name: str):
+    """Fetches the bhav copy.
+        This function will fetch the bhav copy from NSE site.
+    Parameter
+    ---------
+    csv_name: str
+        Name of the CSV file. (for example. cm10NOV2023bhav.csv)
+    Return
+    ------
+    True if the fetch was successful. False otherwise.
+
+    Validations
+    -----------
+    None
+    """
+    m_name = "fetch_bhav_copy"
+    log_append = f"File: {f_name} Module: {m_name}" 
+    print(f"{log_append}: csv_name: [{csv_name}]")
+    (dd, mmm, yyyy) = de_structure_bhav_name(csv_name)
+    if(dd is None or mmm is None or yyyy is None):
+        return False
+    print(f"{log_append}: (dd, mmm, yyyy): [{(dd, mmm, yyyy)}]")
+    fetch_url = ""
+    if (dd and mmm and yyyy):
+        fetch_url = BASE_URL + "/" + yyyy + "/" + mmm + "/" + csv_name + ".zip"
+        if D_LOGGER:
+            print(f"{log_append}: Fetching for: [{dd}], [{mmm}], [{yyyy}]")
+            print(f"{log_append}: fetch_url: [{fetch_url}]")
+            # Download the ZIP file
+        try:
+            res = requests.get(fetch_url, allow_redirects=True,timeout=5.00)
+            print(f"{log_append}: HTTP Response Code: [{res.status_code}]")
+            if res.status_code == 200:
+                # All well so far
+                csv_zip_file_name = csv_name + ".zip"
+                # Change path to store zip file
+                with open(BHAV_DIR + csv_zip_file_name, "wb") as f:
+                    f.write(res.content)
+                    f.close()
+                    # Extract the ZIP file to the destination folder
+                    # Change path to extrtact zip file
+                    with zipfile.ZipFile(BHAV_DIR + csv_zip_file_name, "r") as bhavzip:
+                        bhavzip.extractall(path=BHAV_DIR)
+                    # Change path to delete zip file
+                    # delete the ZIP file 
+                    if os.path.exists(BHAV_DIR + csv_zip_file_name):
+                        print("f{log_append}: Removing ZIP file")
+                        os.remove(BHAV_DIR + csv_zip_file_name)
+                return True
+            else:
+                print("f{log_append}: Something Wrong with the fetch")
+        except Exception as e:
+            print(f"{log_append}: fetch_url: [{fetch_url}]")
+            print(f"{log_append}:  Error in fetch: {e}")
+            return False
+        finally:
+            # TODO What should be the return here?
+            pass
+    return False
+
 def compose_bhav_csv_name(t_date: date):
+    """Composes a bhav CSV file name based on the date passed. 
+        This method does not perform any kind of validation check on the input.
+        It is assumed that the caller will make the validation of date depending
+        on whether it is a weekend or trading holiday!
+    Parameter
+    ---------
+    t_date: datetime.date 
+        The date for which bhav copy CSV name is to be composed.
+    Return
+    ------
+    bhav_name: str 
+        Bhav file name (for example, cm10NOV2023bhav.csv)
+    """
     m_name = "compose_bhav_csv_name"
     log_append = f"File: {f_name} Module: {m_name}" 
     if(t_date):
@@ -25,7 +144,7 @@ def compose_bhav_csv_name(t_date: date):
                             t_date.strftime("%b").upper(),  \
                             t_date.strftime("%Y") 
         result = "cm" + t_day + t_mon + t_year + "bhav.csv"
-        if LOGGER:
+        if D_LOGGER:
             print(f"{log_append}: result [{result}]")
         return result
     return None
@@ -34,7 +153,8 @@ def is_trading_date_valid(t_date: date):
     """
     Checks validity of a date
         This function takes a date and verifies wether the date is valid trading
-        day or not(weekends, NSE holidays are invalid). Also, for the current date time shouldn't be before 7:00pm/19:00hrs for a valid date
+        day or not(weekends, NSE holidays are invalid). Also, for the current
+        date time shouldn't be before 7:00pm/19:00hrs for a valid date
 
     Parameters: 
     -----------
@@ -48,7 +168,8 @@ def is_trading_date_valid(t_date: date):
     """
     m_name = "is_trading_date_valid"
     log_append = f"File: {f_name} Module: {m_name}" 
-    print(f"{log_append}: date passed: [{t_date}]")
+    if D_LOGGER:
+        print(f"{log_append}: date passed: [{t_date}]")
     if t_date:
         #Checks for Weekend
         if(t_date.strftime("%w") == "6" or t_date.strftime("%w") == "0"):
@@ -102,6 +223,7 @@ def check_cutoff_time():
     else:
         print(f"{log_append}: Cut-Off Time Check passed!")
         return True
+
 def is_csv_existing(csv_file: str):
     """
     Checks for the existance of the CSV file.
@@ -142,6 +264,10 @@ def get_bhav_copy(t_date: date):
     -----------
     If the data exists for that date then return dataFrame or None.
 
+    Validations
+    -----------
+    checks for validity of trading date (holidays, weekdns, etc.)
+
     """
     m_name = "get_bhav_copy"
     log_append = f"File: {f_name} Module: {m_name}" 
@@ -156,17 +282,23 @@ def get_bhav_copy(t_date: date):
         csv_file_path = os.path.join(BHAV_DIR, csv_name)
         if D_LOGGER:
             print(f"{log_append}: csv_file_path: {csv_file_path}")
-        df = pd.read_csv(csv_file_path)
-        # if D_LOGGER:
-        #     print(f"{log_append}: CSV file as DF: {df}")
-        return df
-    # If the date is valid then check if this file is existing locally
-    # If CSV exists locally then return it
-    # If the CSV does not exist then fetch the bhav copy and store it and return
-    # it.
+        # If the date is valid then check if this file is existing locally
+        if is_csv_existing(csv_file_path):
+            # If CSV exists locally then read it and return it
+            df = pd.read_csv(csv_file_path)
+            # if D_LOGGER:
+            #     print(f"{log_append}: CSV file as DF: {df}")
+            return df
+        else: # CSV doees NOT exist locally
+            # If the CSV does not exist then fetch the bhav copy and store it and return it.
+            if fetch_bhav_copy(str(csv_name)):
+                df = pd.read_csv(csv_file_path)
+            pass
     return None
 
 def fetch_yearly_data(symbol: str):
+    """Currently unusable. TODO
+    """
     # https://www.nseindia.com/api/historical/cm/equity?symbol=EASEMYTRIP&series=[%22BE%22]&from=01-04-2021&to=31-03-2022
     m_name = "fetch_yearly_data"
     log_append = f"File: {f_name} Module: {m_name}" 
@@ -280,4 +412,4 @@ if __name__ == "__main__":
     if LOGGER:
         print("Main called!" + BASE_DIR)
     # get_bhav_copy(date(2023, 10, 10))
-    check_cutoff_time()
+    # check_cutoff_time()

@@ -479,7 +479,61 @@
      series2 = pd.Series()
      @end
 
+** Function Application and Mapping
+   - NumPy ufuncs (`element-wise array methods`) also works with Pandas objects
+   @code python
+   frame = pd.DataFrame(np.random.standard_normal((4,3)), columns=list('bde'),
+                        index=['Utah', 'Ohio', 'Texas', 'Oregon'])  
+   frame
+   Out[8]:
+                 b         d         e
+   Utah    1.215947 -1.800450  1.133276
+   Ohio   -0.284064 -1.067392 -0.038401
+   Texas   0.446395 -1.760539  0.687980
+   Oregon  1.262462  0.385024 -0.669894
 
+   np.abs(frame)
+   Out[9]:
+               b         d         e
+   Utah    1.215947  1.800450  1.133276
+   Ohio    0.284064  1.067392  0.038401
+   Texas   0.446395  1.760539  0.687980
+   Oregon  1.262462  0.385024  0.669894
 
+   # the np.abs method is applied on every element of the data Frame
+   @end
+   - Another frequent operation is applying a function on one-dimensional arrays
+     to each column or row. DataFrame’s `apply` method does exactly this:
+   @code python
+   def f1(x):
+     return x.max() - x.min()
+   In [227]: frame.apply(f1)
+   Out[227]: 
+   b    1.802165
+   d    1.684034
+   e    2.689627
+   dtype: float6
+   @end
+   - Here the function f, which computes the difference between the maximum and
+     minimum of a Series, is invoked once on each column in frame. The result is
+     a Series having the columns of frame as its index.
+
+   - If you pass axis="columns" to apply, the function will be invoked once per
+     row instead. A helpful way to think about this is as ^apply across the
+     columns^:
+   @code python
+   In [18]: frame.apply(f1, axis="columns")
+   Out[18]:
+   Utah      3.016396
+   Ohio      1.028990
+   Texas     2.448519
+   Oregon    1.932357
+   dtype: float64  
+   @end
+
+   - Many of the most common array statistics (like sum and mean) are DataFrame
+     methods, ^so using apply is not necessary^.
+   - The function passed to apply need not return a scalar value; it can also
+     return a Series with multiple values:
 
 

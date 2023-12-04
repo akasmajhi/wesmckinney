@@ -65,10 +65,41 @@ class test_helper(unittest.TestCase):
         symbol = 'AXISBANK'
         # self.assertIsNotNone(helper.fetch_yearly_data(symbol))
         pass
+
     def test_compose_symbol_wise_data(self):
         # Passing an invalid period to get None
         self.assertIsNone(helper.get_symbol_wise_data("INFY", 'INVALID_PERIOD'))
         self.assertIsNotNone(helper.get_symbol_wise_data("AXISBANK", 'YEAR'))
+
+    def test_de_structure_bhav_name(self):
+        # Positive Test case for correct file name
+        csv_name = 'cm10NOV2023bhav.csv'
+        self.assertEqual(helper.de_structure_bhav_name(csv_name),\
+                ('10', 'NOV', '2023'))
+        # Negative Test case for blank file name
+        csv_name = ''
+        self.assertEqual(helper.de_structure_bhav_name(csv_name),\
+                (None, None, None))
+
+    def test_fetch_bhav_copy(self):
+        # Positive test case for a valid csv_name
+        csv_name = 'cm10NOV2020bhav.csv'
+        self.assertTrue(helper.fetch_bhav_copy(csv_name))
+        # Negative test for a invalid csv name
+        csv_name = 'cm10NOV20223bhav.csv'
+        self.assertFalse(helper.fetch_bhav_copy(csv_name))
+        pass
+
+    def test_get_bhav_copy(self):
+        # pass a valid and existing bhav copy
+        t_date = date(2020, 11, 10)
+        self.assertIsNotNone(helper.get_bhav_copy(t_date))
+        # Try getting a bhav copy that does not exist
+        t_not_date = date(2020, 11, 11)
+        # TODO set up methods are useful here to prepare test data
+        # If the bhav does not exist, it should fetch and return
+        self.assertIsNone(helper.get_bhav_copy(t_not_date))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,7 @@ NSE_HOLIDAYS = [date(2022,8,9),date(2023,1,26),date(2023,3,7),date(2023,3,30),da
 # BASE_DIR = os.path.join(os.getcwd(),'bhav_copy/')
 BASE_DIR = "/home/akasmajhi/data/NSE"
 BHAV_DIR = "/home/akasmajhi/data/NSE/bhavcopy"
+# Sample:   https://archives.nseindia.com/content/historical/EQUITIES/2022/DEC/cm01DEC2022bhav.csv.zip
 BASE_URL = "https://archives.nseindia.com/content/historical/EQUITIES/"
 YEARLY_DATA_DIR="/home/akasmajhi/data/NSE/yearly_data/"
 SYMBOLS_DATA_DIR="/home/akasmajhi/data/NSE/symbols_data/"
