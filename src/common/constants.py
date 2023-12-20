@@ -17,5 +17,6 @@ valid_periods = ["MONTH", "MON", "WEEK", "YEAR", "QTD", "MTD"]
 
 BHAV_HEADER = ["SYMBOL","SERIES","OPEN","HIGH","LOW","CLOSE","LAST","PREVCLOSE","TOTTRDQTY",
                 "TOTTRDVAL","TIMESTAMP","TOTALTRADES","ISIN"]
+FNO_STOCKS = []
 if __name__ == "__main__":
     pass

@@ -7,7 +7,29 @@ if __name__ == "__main__":
 else:
     from . import helper
 
+# @unittest.skip("This entire class will be skipped with this annotation!")
 class test_helper(unittest.TestCase):
+    def setUp(self) -> None:
+        # TODO set up is called once for each test_ method.
+        # Ensure that it is called only for the required test_ method(s)
+        print(f"setUp called for {__file__}")
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        return super().tearDown()
+
+    # @unittest.skip("This particular test will be skipped with this annotation!")
+    def test_get_date_from_csv(self):
+        # Pass an invalid csv name and expect None in return
+        invalid_csv = 'cmm10NOV2023bbhav.csv'
+        self.assertIsNone(helper.get_date_from_csv(invalid_csv))
+        # Pass a valid csv name and expect a date object
+        valid_date = date(2023, 11, 21)
+        valid_csv = 'cm21NOV2023bhav.csv'
+        ret_value = helper.get_date_from_csv(valid_csv)
+        self.assertIsNotNone(ret_value)
+        self.assertEqual(valid_date, ret_value)
+
     def test_compose_bhav_csv_name(self):
         t_date = date(2023, 11, 21)
         expected_output = 'cm21NOV2023bhav.csv'
@@ -62,7 +84,7 @@ class test_helper(unittest.TestCase):
         """
         This method does not work because the URL is not getting fetched
         """
-        symbol = 'AXISBANK'
+        # symbol = 'AXISBANK'
         # self.assertIsNotNone(helper.fetch_yearly_data(symbol))
         pass
 
@@ -95,10 +117,19 @@ class test_helper(unittest.TestCase):
         t_date = date(2020, 11, 10)
         self.assertIsNotNone(helper.get_bhav_copy(t_date))
         # Try getting a bhav copy that does not exist
-        t_not_date = date(2020, 11, 11)
+        # t_not_date = date(2020, 11, 11)
         # TODO set up methods are useful here to prepare test data
         # If the bhav does not exist, it should fetch and return
-        self.assertIsNone(helper.get_bhav_copy(t_not_date))
+        # self.assertIsNone(helper.get_bhav_copy(t_not_date))
+
+    def test_compose_weekly_csv_names(self):
+        t_date = date(2023, 12, 3)
+        self.assertIsNotNone(helper.compose_weekly_csv_names(t_date))
+
+    def test_prepare_weekly_data(self):
+        start_date = date(2023, 12, 3)
+        self.assertIsNotNone(helper.prepare_weekly_data(start_date))
+        pass 
 
 
 if __name__ == "__main__":

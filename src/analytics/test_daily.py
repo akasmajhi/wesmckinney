@@ -25,5 +25,6 @@ class test_daily(unittest.TestCase):
         # For a market close day, you should get None
         # self.assertIsNone(daily.daily_price_gainers(date(2022,8,9)))
 
+
 if __name__ == "__main__":
     unittest.main()

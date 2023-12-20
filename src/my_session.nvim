@@ -13,14 +13,20 @@ if &shortmess =~ 'A'
 else
   set shortmess=aoO
 endif
-badd +1 analytics/daily.py
-badd +1 common/test_helper.py
+badd +58 analytics/daily.py
+badd +99 common/test_helper.py
 badd +3 analytics/test_daily.py
 badd +1 common/helper.py
+badd +1 common/constants.py
+badd +1 master/equities.csv
+badd +26 common/master_data.py
+badd +1 common/test_master_data.py
+badd +8 analytics/performance.py
+badd +11 analytics/test_performance.py
 argglobal
 %argdel
 $argadd NvimTree_1
-edit analytics/daily.py
+edit common/helper.py
 let s:save_splitbelow = &splitbelow
 let s:save_splitright = &splitright
 set splitbelow splitright
@@ -45,15 +51,16 @@ set winminheight=0
 set winheight=1
 set winminwidth=0
 set winwidth=1
-exe '1resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 1resize ' . ((&columns * 134 + 134) / 269)
-exe '2resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 2resize ' . ((&columns * 134 + 134) / 269)
-exe '3resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 3resize ' . ((&columns * 134 + 134) / 269)
-exe '4resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 4resize ' . ((&columns * 134 + 134) / 269)
+exe '1resize ' . ((&lines * 26 + 27) / 55)
+exe 'vert 1resize ' . ((&columns * 117 + 118) / 236)
+exe '2resize ' . ((&lines * 25 + 27) / 55)
+exe 'vert 2resize ' . ((&columns * 117 + 118) / 236)
+exe '3resize ' . ((&lines * 25 + 27) / 55)
+exe 'vert 3resize ' . ((&columns * 118 + 118) / 236)
+exe '4resize ' . ((&lines * 26 + 27) / 55)
+exe 'vert 4resize ' . ((&columns * 118 + 118) / 236)
 argglobal
+balt analytics/daily.py
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -64,59 +71,11 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 15) / 30)
+let s:l = 18 - ((7 * winheight(0) + 13) / 26)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1
-normal! 0
-lcd ~/source/wesmckinney/src
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/source/wesmckinney/src/analytics/test_daily.py", ":p")) | buffer ~/source/wesmckinney/src/analytics/test_daily.py | else | edit ~/source/wesmckinney/src/analytics/test_daily.py | endif
-if &buftype ==# 'terminal'
-  silent file ~/source/wesmckinney/src/analytics/test_daily.py
-endif
-balt ~/source/wesmckinney/src/common/test_helper.py
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 3 - ((2 * winheight(0) + 15) / 30)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 3
-normal! 0
-lcd ~/source/wesmckinney/src
-wincmd w
-argglobal
-if bufexists(fnamemodify("~/source/wesmckinney/src/common/helper.py", ":p")) | buffer ~/source/wesmckinney/src/common/helper.py | else | edit ~/source/wesmckinney/src/common/helper.py | endif
-if &buftype ==# 'terminal'
-  silent file ~/source/wesmckinney/src/common/helper.py
-endif
-balt ~/source/wesmckinney/src/analytics/daily.py
-setlocal fdm=manual
-setlocal fde=0
-setlocal fmr={{{,}}}
-setlocal fdi=#
-setlocal fdl=99
-setlocal fml=1
-setlocal fdn=20
-setlocal fen
-silent! normal! zE
-let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 15) / 30)
-if s:l < 1 | let s:l = 1 | endif
-keepjumps exe s:l
-normal! zt
-keepjumps 1
+keepjumps 18
 normal! 0
 lcd ~/source/wesmckinney/src
 wincmd w
@@ -125,7 +84,7 @@ if bufexists(fnamemodify("~/source/wesmckinney/src/common/test_helper.py", ":p")
 if &buftype ==# 'terminal'
   silent file ~/source/wesmckinney/src/common/test_helper.py
 endif
-balt ~/source/wesmckinney/src/analytics/daily.py
+balt ~/source/wesmckinney/src/analytics/test_daily.py
 setlocal fdm=manual
 setlocal fde=0
 setlocal fmr={{{,}}}
@@ -136,22 +95,71 @@ setlocal fdn=20
 setlocal fen
 silent! normal! zE
 let &fdl = &fdl
-let s:l = 1 - ((0 * winheight(0) + 15) / 30)
+let s:l = 99 - ((0 * winheight(0) + 12) / 25)
 if s:l < 1 | let s:l = 1 | endif
 keepjumps exe s:l
 normal! zt
-keepjumps 1
+keepjumps 99
 normal! 0
 lcd ~/source/wesmckinney/src
 wincmd w
-exe '1resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 1resize ' . ((&columns * 134 + 134) / 269)
-exe '2resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 2resize ' . ((&columns * 134 + 134) / 269)
-exe '3resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 3resize ' . ((&columns * 134 + 134) / 269)
-exe '4resize ' . ((&lines * 30 + 32) / 64)
-exe 'vert 4resize ' . ((&columns * 134 + 134) / 269)
+argglobal
+if bufexists(fnamemodify("~/source/wesmckinney/src/analytics/performance.py", ":p")) | buffer ~/source/wesmckinney/src/analytics/performance.py | else | edit ~/source/wesmckinney/src/analytics/performance.py | endif
+if &buftype ==# 'terminal'
+  silent file ~/source/wesmckinney/src/analytics/performance.py
+endif
+balt ~/source/wesmckinney/src/common/master_data.py
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 8 - ((7 * winheight(0) + 12) / 25)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 8
+normal! 033|
+lcd ~/source/wesmckinney/src
+wincmd w
+argglobal
+if bufexists(fnamemodify("~/source/wesmckinney/src/analytics/test_performance.py", ":p")) | buffer ~/source/wesmckinney/src/analytics/test_performance.py | else | edit ~/source/wesmckinney/src/analytics/test_performance.py | endif
+if &buftype ==# 'terminal'
+  silent file ~/source/wesmckinney/src/analytics/test_performance.py
+endif
+balt ~/source/wesmckinney/src/common/test_master_data.py
+setlocal fdm=manual
+setlocal fde=0
+setlocal fmr={{{,}}}
+setlocal fdi=#
+setlocal fdl=99
+setlocal fml=1
+setlocal fdn=20
+setlocal fen
+silent! normal! zE
+let &fdl = &fdl
+let s:l = 11 - ((10 * winheight(0) + 13) / 26)
+if s:l < 1 | let s:l = 1 | endif
+keepjumps exe s:l
+normal! zt
+keepjumps 11
+normal! 060|
+lcd ~/source/wesmckinney/src
+wincmd w
+4wincmd w
+exe '1resize ' . ((&lines * 26 + 27) / 55)
+exe 'vert 1resize ' . ((&columns * 117 + 118) / 236)
+exe '2resize ' . ((&lines * 25 + 27) / 55)
+exe 'vert 2resize ' . ((&columns * 117 + 118) / 236)
+exe '3resize ' . ((&lines * 25 + 27) / 55)
+exe 'vert 3resize ' . ((&columns * 118 + 118) / 236)
+exe '4resize ' . ((&lines * 26 + 27) / 55)
+exe 'vert 4resize ' . ((&columns * 118 + 118) / 236)
 tabnext 1
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0 && getbufvar(s:wipebuf, '&buftype') isnot# 'terminal'
   silent exe 'bwipe ' . s:wipebuf
@@ -167,7 +175,6 @@ if filereadable(s:sx)
 endif
 let &g:so = s:so_save | let &g:siso = s:siso_save
 set hlsearch
-nohlsearch
 doautoall SessionLoadPost
 unlet SessionLoad
 " vim: set ft=vim :

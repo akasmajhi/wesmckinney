@@ -38,6 +38,36 @@ def is_csv_file_name_valid(csv_name: str):
         print(f"{log_append}: Valid csv_name: [{csv_name}]")
     return True
 
+def get_date_from_csv(csv_name: str):
+    """Extracts and returns the datetime.date from the CSV name.
+        CSV name example: cm27NOV2023bhav.csv. Return date(2023, 11, 27)
+    Parameter
+    ---------
+    csv_file_name: str
+        Name of CSV file. Example, cm27NOV2023bhav.csv
+    Return
+    ------
+    datetime.date 
+    Validations
+    ----------
+        Almost nothing.
+    """
+    m_name = "get_date_from_csv"
+    log_append = f"File: {f_name} Module: {m_name}"
+    if(not is_csv_file_name_valid(csv_name)):
+        print(f"{log_append}: Returning None for an invalid csv: [{csv_name}]")
+        return None
+    months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',\
+            'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+    (dd, mmm, yyyy) = (csv_name[2:4], csv_name[4:7], csv_name[7:11])
+    try:
+        mm = months.index(mmm.upper()) + 1
+        dt = date(int(yyyy), mm, int(dd))
+        print(f"{log_append}: Returning date: [{dt}] for a valid csv: [{csv_name}]")
+        return dt
+    except ValueError:
+        print(f"{log_append}: Error Extracting month name from file: {csv_name}")
+
 def de_structure_bhav_name(csv_name: str):
     """Destructures the parts from a bhav CSV file name
         For a given bhav csv file name, extract it's parts.
@@ -283,6 +313,7 @@ def get_bhav_copy(t_date: date):
         if D_LOGGER:
             print(f"{log_append}: csv_file_path: {csv_file_path}")
         # If the date is valid then check if this file is existing locally
+        df = pd.DataFrame()
         if is_csv_existing(csv_file_path):
             # If CSV exists locally then read it and return it
             df = pd.read_csv(csv_file_path)
@@ -293,8 +324,116 @@ def get_bhav_copy(t_date: date):
             # If the CSV does not exist then fetch the bhav copy and store it and return it.
             if fetch_bhav_copy(str(csv_name)):
                 df = pd.read_csv(csv_file_path)
-            pass
+            # check df size before returning
+            if(len(df) > 1):
+                return df
     return None
+
+def compose_weekly_csv_names(arg_date=None):
+    """
+    Description: Composes file names for a given week; weekends and trading holidays are excluded.
+    Typically it should be run on Saturday or Sunday to identify best probable trades.
+    Arguments:
+    start_date: datetime.date object; defaulted to datetime.date.today()
+    Returns: An array of file names. Format: cmDDMONYYYYbhav.csv
+    """    
+    m_name = "compose_weekly_csv_names"
+    log_append = f"File: {f_name} Module: {m_name}"
+    print(f"{log_append} arg_date: [{arg_date}] ")
+    if arg_date is None:
+        arg_date = datetime.today()
+    # IF the start date is a Saturday or Sunday
+    if arg_date.weekday() >= 5:
+        start_date = arg_date - timedelta(days=arg_date.weekday())
+    else:
+        start_date = arg_date - timedelta(days=7+arg_date.weekday()) 
+    # print('Date Passed is: [{}] Today is: [{}] And start_date is: [{}]'.format(arg_date, datetime.date.today(), start_date))
+    # Now compose the file names for 5 days
+    csv_file_names = []
+    for day in range(0,5):
+        next_date = start_date + timedelta(days=day)
+        csv_name = 'cm' + next_date.strftime('%d') + next_date.strftime('%b').upper() + \
+            next_date.strftime('%Y') + 'bhav.csv'
+        # TODO: check holiday calendar for exception
+        csv_file_names.append(csv_name)
+        # print('next_date: [{}] File Name: [{}]'.format(next_date, f_name))
+    print(f"{log_append}: csv_file_names: [{csv_file_names}]")
+    return csv_file_names
+
+def prepare_weekly_data(arg_date=None, series='EQ'):
+    """creates weekly bhav data for analysis.
+    Parameter
+    ---------
+    arg_date: datetime.date 
+        The end-of-week (or weekend) date 
+    series: str 
+        Defaulted to 'EQ'
+    Return
+    ------
+    pd.DataFrame containing weekly data 
+
+    Note: added a column to convert TIMESTAMP column to datetime.date Object
+    """
+    m_name = "prepare_weekly_data"
+    log_append = f"File: {f_name} Module: {m_name}"
+    print(f"{log_append}: arg_date: [{arg_date}]")
+    daily_file_names = compose_weekly_csv_names(arg_date)
+    print(f"{log_append}: daily_file_names: [{daily_file_names}]")
+    combined_data = pd.DataFrame()
+    for file in daily_file_names:
+        t_date = get_date_from_csv(file)
+        try:
+            # before reading file ensure it is not an invalid trading day 
+            if t_date and is_trading_date_valid(t_date):
+                daily_data = pd.read_csv(BHAV_DIR + '/' + file)
+                combined_data = combined_data._append(daily_data)
+        except FileNotFoundError:
+            print(f"{log_append}: File: [{file}] Not Found! Downloading . . . ")
+            # Download the file and append
+            # Mistake: You should not call fetch directly because it will bypass
+            # validations. Instead, call get_bhav_copy
+            if t_date is not None:
+                missing_data = get_bhav_copy(t_date)
+                if missing_data is not None:
+                    combined_data = combined_data._append(missing_data)
+    # Filter the data to include only equities
+    combined_data = combined_data[combined_data.SERIES == series]
+    combined_data['trading_date'] = pd.to_datetime(combined_data['TIMESTAMP'], format='%d-%b-%Y')
+    # Prepare the weekly data
+    weekly_data = pd.DataFrame()
+    # Iterate for each scrip/symbol
+    unique_symbols = combined_data.SYMBOL.unique()
+    print(f"{log_append}: Total Symbols: [{len(unique_symbols)}]")
+    
+    print(f"{log_append}: Preparing Weekly Data")
+    for symbol in unique_symbols:
+        # For each symbol found create a DF
+        symbol_df = combined_data[combined_data["SYMBOL"] == symbol].sort_values(by=['trading_date'],\
+                                          ascending=True)
+        # TODO: Index is symbol name
+        # Add starting date
+        start_date = symbol_df.iloc[0].trading_date
+        # Open is first occurance of Open
+        open = symbol_df.iloc[0].OPEN
+        # High is max high of series
+        high = symbol_df['HIGH'].max()
+        # low is min low of series
+        low = symbol_df['LOW'].min()
+        # Close is the close price of last trading session
+        close = symbol_df.iloc[len(symbol_df)-1].CLOSE 
+        # Volume is the sum of all the volumes
+        volume = symbol_df['TOTTRDQTY'].sum()
+        # Previos_close is the previous close value of the first item in series
+        prev_close = symbol_df.iloc[0].PREVCLOSE
+        # Optionally: Retain ISIN
+        pct_change = 100 * ((close-prev_close)/prev_close)
+        weekly_data = weekly_data._append({
+            "symbol": symbol, "start_date": start_date, "open": open, "high": high, \
+            "low": low, "close": close, "prev_close": prev_close, "pct_change": pct_change, \
+            "volume": volume
+        }, ignore_index=True)
+        
+    return weekly_data
 
 def fetch_yearly_data(symbol: str):
     """Currently unusable. TODO
